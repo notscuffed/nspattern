@@ -143,7 +143,7 @@ namespace ns
             std::is_integral_v<decltype(std::declval<TContainer>().size())>
         >
     >
-        ns::match_index find_pattern(std::array<TPattern, PSize> const& pattern, TContainer& container)
+    ns::match_index find_pattern(std::array<TPattern, PSize> const& pattern, TContainer& container)
     {
         auto resultIt = std::search(
             container.data(), container.data() + container.size(),
@@ -152,6 +152,38 @@ namespace ns
 
         if (resultIt != container.data() + container.size())
             return resultIt - container.data();
+
+        return ns::no_match;
+    }
+
+    /// <summary>
+    /// Container needs to have .rbegin() and .rend()
+    /// </summary>
+    template<
+        std::size_t PSize,
+        typename TPattern,
+        typename TContainer,
+        typename = std::enable_if_t<
+            std::is_same_v<
+                typename TPattern::element_type,
+                std::remove_cv_t<std::remove_pointer_t<decltype(std::declval<TContainer>().data())>>
+            >
+        >,
+        typename = std::enable_if_t<
+            std::is_integral_v<decltype(std::declval<TContainer>().size())>
+        >,
+        typename = decltype(std::declval<TContainer>().rbegin()),
+        typename = decltype(std::declval<TContainer>().rend())
+    >
+    ns::match_index find_pattern_reverse(std::array<TPattern, PSize> const& pattern, TContainer& container)
+    {
+        auto resultIt = std::search(
+            container.rbegin(), container.rend(),
+            pattern.rbegin(), pattern.rend()
+        );
+
+        if (resultIt != container.rend())
+            return std::addressof(*resultIt) - container.data() + 1 - pattern.size();
 
         return ns::no_match;
     }
@@ -168,7 +200,7 @@ namespace ns
             >
         >
     >
-        ns::match_index find_pattern(std::array<TPattern, PSize> const& pattern, TArrayElement(&array)[ASize])
+    ns::match_index find_pattern(std::array<TPattern, PSize> const& pattern, TArrayElement(&array)[ASize])
     {
         auto resultIt = std::search(
             array, array + ASize,

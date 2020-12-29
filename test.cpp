@@ -87,8 +87,17 @@ void test_custom_container()
 {
     CustomContainer container = { {0xCA, 0xFE, 0xCA, 0xFE, 0x00, 0x90, 0x90} };
     constexpr auto pattern = COMPILE_PATTERN("CA FE");
-    
+
     assert(ns::find_pattern(pattern, container) == 0);
+}
+
+void test_reverse_search()
+{
+    std::vector<unsigned char> data = { 0x00, 0xAA, 0xAB, 0xCD, 0xEF, 0x90, 0x90 };
+    constexpr auto pattern = COMPILE_PATTERN("AA AB ?? EF");
+
+    auto result = ns::find_pattern_reverse(pattern, data);
+    assert(result == 1);
 }
 
 int main()
@@ -101,6 +110,7 @@ int main()
     test_mask();
     test_mask_no_match();
     test_custom_container();
+    test_reverse_search();
 
     return 0;
 }
