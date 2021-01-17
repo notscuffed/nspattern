@@ -100,6 +100,23 @@ void test_reverse_search()
     assert(result == 1);
 }
 
+void test_non_constexpr_reverse_search()
+{
+    std::vector<unsigned char> data = { 0x00, 0xAA, 0xAB, 0xCD, 0xEF, 0x90, 0x90 };
+    auto pattern = ns::compile_pattern("AA AB ?? EF");
+
+    auto result = ns::find_pattern_reverse(pattern, data);
+    assert(result == 1);
+}
+
+void test_non_constexpr_default()
+{
+    std::vector<unsigned char> data = { 0x00, 0x00, 0x00, 0x01, 0x00, 0x90, 0x90 };
+    auto pattern = ns::compile_pattern("90 90");
+
+    assert(ns::find_pattern(pattern, data) == 5);
+}
+
 int main()
 {
     test_single_char();
@@ -111,6 +128,9 @@ int main()
     test_mask_no_match();
     test_custom_container();
     test_reverse_search();
+
+    test_non_constexpr_reverse_search();
+    test_non_constexpr_default();
 
     return 0;
 }

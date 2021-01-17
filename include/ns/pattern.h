@@ -129,13 +129,35 @@ namespace ns
         }
     }
 
+    std::vector<pattern_element<unsigned char>> compile_pattern(std::string_view s)
+    {
+        std::vector<pattern_element<unsigned char>> elements;
+        const char* begin = s.data();
+        const char* input_end = s.data() + s.size();
+
+        while (begin < input_end)
+        {
+            const char* end = begin;
+            while (end < input_end && *end != ' ')
+                end++;
+            
+            if (*begin != '?')
+                elements.push_back({ pattern_internal::parse_hex(std::string_view(begin, end - begin)) });
+            else
+                elements.push_back({ .any = true });
+
+            begin = end + 1;
+        }
+
+        return elements;
+    }
+
     template<
-        std::size_t PSize,
-        typename TPattern,
+        typename TPatternContainer,
         typename TContainer,
         typename = std::enable_if_t<
             std::is_same_v<
-                typename TPattern::element_type,
+                typename TPatternContainer::value_type::element_type,
                 std::remove_cv_t<std::remove_pointer_t<decltype(std::declval<TContainer>().data())>>
             >
         >,
@@ -143,7 +165,7 @@ namespace ns
             std::is_integral_v<decltype(std::declval<TContainer>().size())>
         >
     >
-    ns::match_index find_pattern(std::array<TPattern, PSize> const& pattern, TContainer& container)
+    ns::match_index find_pattern(TPatternContainer const& pattern, TContainer& container)
     {
         auto resultIt = std::search(
             container.data(), container.data() + container.size(),
@@ -160,12 +182,11 @@ namespace ns
     /// Container needs to have .rbegin() and .rend()
     /// </summary>
     template<
-        std::size_t PSize,
-        typename TPattern,
+        typename TPatternContainer,
         typename TContainer,
         typename = std::enable_if_t<
             std::is_same_v<
-                typename TPattern::element_type,
+                typename TPatternContainer::value_type::element_type,
                 std::remove_cv_t<std::remove_pointer_t<decltype(std::declval<TContainer>().data())>>
             >
         >,
@@ -175,7 +196,7 @@ namespace ns
         typename = decltype(std::declval<TContainer>().rbegin()),
         typename = decltype(std::declval<TContainer>().rend())
     >
-    ns::match_index find_pattern_reverse(std::array<TPattern, PSize> const& pattern, TContainer& container)
+    ns::match_index find_pattern_reverse(TPatternContainer const& pattern, TContainer& container)
     {
         auto resultIt = std::search(
             container.rbegin(), container.rend(),
@@ -189,18 +210,17 @@ namespace ns
     }
 
     template<
-        std::size_t PSize,
         std::size_t ASize,
-        typename TPattern,
+        typename TPatternContainer,
         typename TArrayElement,
         typename = std::enable_if_t<
             std::is_same_v<
-                typename TPattern::element_type,
+                typename TPatternContainer::value_type::element_type,
                 std::remove_cv_t<TArrayElement>
             >
         >
     >
-    ns::match_index find_pattern(std::array<TPattern, PSize> const& pattern, TArrayElement(&array)[ASize])
+    ns::match_index find_pattern(TPatternContainer const& pattern, TArrayElement(&array)[ASize])
     {
         auto resultIt = std::search(
             array, array + ASize,
