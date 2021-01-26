@@ -130,7 +130,7 @@ namespace ns
         }
     }
 
-    std::vector<pattern_element<unsigned char>> compile_pattern(std::string_view s)
+    inline std::vector<pattern_element<unsigned char>> compile_pattern(std::string_view s)
     {
         std::vector<pattern_element<unsigned char>> elements;
         const char* begin = s.data();
